@@ -10,7 +10,8 @@ function analyzeNews() {
     }
 
     // API call to analyze the news text for bias
-    fetch("http://127.0.0.1:5000/analyze", {
+    fetch("fetch("https://biasbackend.onrender.com/api/analyze", {
+", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text })
