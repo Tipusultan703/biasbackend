@@ -73,11 +73,12 @@ function checkSource() {
     console.log("📡 Debug: Checking source credibility for URL:", url);
 
     // API call to check the credibility of the URL source
-    fetch("http://127.0.0.1:5000/source_check", {
+    fetch("https://biasbackend.onrender.com/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url })
+        body: JSON.stringify({ text: "Sample news" })
     })
+    
     .then(response => {
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
