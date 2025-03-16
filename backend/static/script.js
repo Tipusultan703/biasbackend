@@ -1,3 +1,4 @@
+
 function analyzeNews() {
     console.log("🔍 Debug: analyzeNews() function started!");
 
@@ -10,8 +11,7 @@ function analyzeNews() {
     }
 
     // API call to analyze the news text for bias
-    fetch("fetch("https://biasbackend.onrender.com/api/analyze", {
-", {
+    fetch("https://biasbackend.onrender.com/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text })
@@ -74,12 +74,11 @@ function checkSource() {
     console.log("📡 Debug: Checking source credibility for URL:", url);
 
     // API call to check the credibility of the URL source
-    fetch("https://biasbackend.onrender.com/api/analyze", {
+    fetch("https://biasbackend.onrender.com/api/source-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: "Sample news" })
+        body: JSON.stringify({ url: url })  // Use "url" instead of "text"
     })
-    
     .then(response => {
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
@@ -119,14 +118,11 @@ function flagArticle() {
     alert("🚩 Article flagged for review.");
 }
 
-
 // Helper function to update the bias score chart (placeholder)
 function updateBiasChart(biasScore) {
     console.log(`📊 Updating chart with Bias Score: ${biasScore}`);
     // Placeholder for chart integration logic
 }
-
-
 
 
 
