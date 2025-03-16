@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bias-Free News Translator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        h2,
+        h3 {
+            text-align: center;
+        }
+
+        textarea,
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: darkblue;
+        }
+
+        .text-box {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            white-space: pre-line;
+        }
+
+        #result,
+        #source-result {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f4f4f4;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h2>Bias-Free News Translator</h2>
+
+    <h3>Paste or type news text here...</h3>
+    <textarea id="newsText" rows="5" placeholder="Enter your article text here..."></textarea>
+    <button onclick="analyzeNews()">Analyze</button>
+
+    <div id="result">
+        <h3>Bias Score: <span id="biasScore">Loading...</span></h3>
+
+        <h3>Original Article</h3>
+        <div id="originalText" class="text-box"></div>
+
+        <h3>Rewritten Article</h3>
+        <div id="rewrittenText" class="text-box"></div>
+
+        <h3>Bias Redlining</h3>
+        <div id="redlinedText" class="text-box"></div>
+
+        <button onclick="toggleView()">Toggle View</button>
+        <button onclick="flagArticle()" style="background: red;">Flag as Incorrect</button>
+    </div>
+
+    <h3>Source Verification</h3>
+    <input type="text" id="newsUrl" placeholder="Enter news website URL">
+    <button onclick="checkSource()">Check Source</button>
+    <div id="source-result">
+        <h3>Bias Rating: <span id="sourceBiasScore">Loading...</span></h3>
+    </div>
+
+    <!-- ✅ Ensure script.js is loaded correctly -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
