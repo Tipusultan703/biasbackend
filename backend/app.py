@@ -188,13 +188,10 @@ def check_source():
 # ✅ Home & Index Routes
 @app.route('/')
 def home():
-    return jsonify({"message": "Welcome to Bias API! Use /api/analyze for text analysis."})
-
-
-@app.route('/index')
-def index():
     """Serve the main HTML page."""
     return render_template("index.html")
+
+
 
 
 # ✅ Run Flask App
