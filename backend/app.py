@@ -1,3 +1,5 @@
+
+
 import os
 import re
 import logging
@@ -35,10 +37,8 @@ TRUSTED_SOURCES = {
     "oann.com": "Low"
 }
 
-
 # ✅ Utility Functions
 def extract_domain(url):
-    """Extract the domain name from a URL."""
     try:
         parsed_url = urlparse(url)
         domain_parts = parsed_url.netloc.replace("www.", "").split('.')
@@ -47,9 +47,7 @@ def extract_domain(url):
         logging.error(f"❌ Error extracting domain from URL: {str(e)}")
         return "Unknown"
 
-
 def extract_number(text):
-    """Extract the first numeric value from text."""
     try:
         match = re.search(r"\d+(?:\.\d+)?", text)
         return float(match.group()) if match else None
@@ -57,9 +55,7 @@ def extract_number(text):
         logging.error(f"❌ Error extracting number: {str(e)}")
         return None
 
-
-def analyze_with_gpt4(text, instructions):
-    """Uses GPT-4 API to analyze text."""
+def analyze_with_gpt4(text, instructions, temperature=0):
     try:
         messages = [
             {"role": "system", "content": instructions},
@@ -69,7 +65,7 @@ def analyze_with_gpt4(text, instructions):
         response = openai_client.chat.completions.create(
             model="gpt-4-turbo",
             messages=messages,
-            temperature=0.3
+            temperature=temperature
         )
 
         if response and response.choices and response.choices[0].message.content:
@@ -78,27 +74,20 @@ def analyze_with_gpt4(text, instructions):
             logging.error("❌ GPT-4 response is empty or invalid.")
             return "Error: Empty response from GPT-4."
 
-    except openai.APIConnectionError as e:
-        logging.error(f"❌ OpenAI API Connection Error: {str(e)}")
-        return "Error: Failed to connect to OpenAI API."
-    except openai.RateLimitError as e:
-        logging.error(f"❌ OpenAI API Rate Limit Exceeded: {str(e)}")
-        return "Error: OpenAI rate limit exceeded. Try again later."
     except Exception as e:
-        logging.error(f"❌ General Error in GPT-4 Analysis: {str(e)}")
-        return "Error: Unexpected issue occurred while processing request."
-
+        logging.error(f"❌ Error in GPT-4 Analysis: {str(e)}")
+        return "Error: Unexpected issue occurred."
 
 def parse_redlined_text(text):
-    """Extract biased words and neutral alternatives."""
     try:
         logging.debug(f"🔍 GPT-4 Redlining Response: {text}")
 
         biased_words = []
         neutral_alternatives = []
 
-        biased_match = re.findall(r"Biased words:\s*\[(.*?)\]", text, re.IGNORECASE)
-        neutral_match = re.findall(r"Neutral alternatives:\s*\[(.*?)\]", text, re.IGNORECASE)
+        # Improved regex for flexibility
+        biased_match = re.findall(r"(?i)Biased words:\s*\[([^\]]*)\]", text)
+        neutral_match = re.findall(r"(?i)Neutral alternatives:\s*\[([^\]]*)\]", text)
 
         if biased_match:
             biased_words = [word.strip() for word in biased_match[0].split(",")]
@@ -113,11 +102,9 @@ def parse_redlined_text(text):
         logging.error(f"❌ Error parsing redlined text: {str(e)}")
         return {"biased_words": ["Error parsing"], "neutral_alternatives": ["Error parsing"]}
 
-
 # ✅ API Routes
 @app.route('/api/analyze', methods=['POST'])
 def analyze_news():
-    """Analyze news text for bias using GPT-4."""
     try:
         if not request.is_json:
             return jsonify({"error": "Invalid request format. Expected JSON"}), 400
@@ -130,7 +117,8 @@ def analyze_news():
         # Get Bias Score
         bias_result = analyze_with_gpt4(
             text,
-            "Analyze the bias in this article and return ONLY a number between 0 and 100. A higher number means more bias."
+            "Analyze the bias in this article and return ONLY a number between 0 and 100. A higher number means more bias.",
+            temperature=0
         )
         bias_score = extract_number(bias_result)
         if bias_score is None:
@@ -139,16 +127,15 @@ def analyze_news():
         # Get Neutral Rewritten Text
         rewritten_text = analyze_with_gpt4(
             text,
-            "Rewrite this article in a fully neutral way, removing any emotionally charged language or bias."
+            "Rewrite this article in a fully neutral way, removing any emotionally charged language or bias.",
+            temperature=0
         )
 
         # Get Biased Words & Neutral Alternatives
         redlined_text = analyze_with_gpt4(
             text,
-            "Identify biased words and suggest neutral alternatives. "
-            "Only return data in this exact format: \n"
-            "Biased words: [word1, word2]\n"
-            "Neutral alternatives: [alt1, alt2]\n"
+            "Identify biased words and suggest neutral alternatives. Only return data in this exact format: \nBiased words: [word1, word2]\nNeutral alternatives: [alt1, alt2]\n",
+            temperature=0
         )
 
         redlined_result = parse_redlined_text(redlined_text)
@@ -163,57 +150,14 @@ def analyze_news():
         logging.error(f"❌ Error in /api/analyze: {str(e)}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-
-@app.route('/api/source-check', methods=['POST'])
-def check_source():
-    """Check the credibility of a news source."""
-    try:
-        if not request.is_json:
-            return jsonify({"error": "Invalid request format. Expected JSON"}), 400
-
-        data = request.get_json()
-        url = data.get("url", "").strip()
-        if not url:
-            return jsonify({"error": "No URL provided"}), 400
-
-        domain = extract_domain(url)
-        credibility = TRUSTED_SOURCES.get(domain, "Unknown")
-
-        return jsonify({"source": domain, "credibility": credibility})
-    except Exception as e:
-        logging.error(f"❌ Error in /api/source-check: {str(e)}")
-        return jsonify({"error": "Internal Server Error"}), 500
-
-
-# ✅ Home & Index Routes
 @app.route('/')
 def home():
-    """Serve the main HTML page."""
-    return render_template("index.html")
-
-
-
+    return render_template('index.html')
 
 # ✅ Run Flask App
 if __name__ == '__main__':
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() == "true"
     app.run(debug=debug_mode, host="0.0.0.0", port=5000)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

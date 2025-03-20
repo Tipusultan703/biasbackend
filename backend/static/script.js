@@ -1,129 +1,117 @@
-
+// Analyze news for bias
 function analyzeNews() {
     console.log("🔍 Debug: analyzeNews() function started!");
 
-    // Get user input from the text box
-    const text = document.getElementById("newsText").value.trim();
+    const text = document.getElementById("newsText")?.value.trim();
     if (!text) {
-        console.log("⚠️ Debug: No text input found.");
+        console.warn("⚠️ Debug: No text input found.");
         alert("❌ Please enter news text.");
         return;
     }
 
-    // API call to analyze the news text for bias
     fetch("https://biasbackend.onrender.com/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text })
+        body: JSON.stringify({ text })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.ok ? response.json() : Promise.reject(`Server error: ${response.status}`))
     .then(data => {
         console.log("✅ Debug: Data from Backend:", data);
 
-        // Process and display the bias score
         const biasScore = parseFloat(data.bias_score);
-        document.getElementById("biasScore").innerText = isNaN(biasScore) 
-            ? "Bias Score: Not Available" 
-            : `Bias Score: ${biasScore.toFixed(2)}`;
+        const biasScoreElem = document.getElementById("biasScore");
+        if (biasScoreElem) {
+            biasScoreElem.innerText = isNaN(biasScore) 
+                ? "Bias Score: Not Available" 
+                : `Bias Score: ${biasScore.toFixed(2)}`;
+        }
 
-        // Process and display redlined text
-        const redlinedArray = Array.isArray(data.redlined_text) 
-            ? data.redlined_text 
-            : ["✅ No biased terms found."];
-        const redlinedHtml = redlinedArray.map(change => {
-            if (change.includes("Biased words:")) {
-                return `<span style="color: red;">❌ ${change}</span>`;
-            } else if (change.includes("Neutral alternatives:")) {
-                return `<span style="color: green;">✅ ${change}</span>`;
-            }
-            return change;
-        }).join("<br>");
-        document.getElementById("redlinedText").innerHTML = redlinedHtml;
+        document.getElementById("originalText").innerText = text;
+        document.getElementById("redlinedText").innerHTML = formatRedlinedText(data.redlined_text);
+        document.getElementById("rewrittenText").innerText = data.rewritten || "No rewritten text available.";
 
-        // Display rewritten text if available
-        const rewrittenText = data.rewritten || "No rewritten text available.";
-        document.getElementById("rewrittenText").innerText = rewrittenText;
-
-        // Update chart or visualization for bias score (if applicable)
-        updateBiasChart(biasScore);
-
-        // Show results section
+        document.getElementById("rewrittenText").style.display = "none"; // Ensure hidden initially
         document.getElementById("result").style.display = "block";
+
+        updateBiasChart(biasScore);
     })
     .catch(error => {
         console.error("❌ Error analyzing news:", error);
-        alert(`Failed to analyze text. Error: ${error.message}`);
+        alert(`Failed to analyze text. Error: ${error}`);
     });
 }
 
+// Format redlined text for display
+function formatRedlinedText(redlinedData) {
+    if (!redlinedData?.biased_words?.length) {
+        return "✅ No biased terms found.";
+    }
+
+    const biasedWords = redlinedData.biased_words.map(word => `<span style="color: red;">❌ ${word}</span>`).join(", ");
+    const neutralAlternatives = redlinedData.neutral_alternatives.map(word => `<span style="color: green;">✅ ${word}</span>`).join(", ");
+
+    return `<strong>Biased Words:</strong> ${biasedWords}<br><strong>Neutral Alternatives:</strong> ${neutralAlternatives}`;
+}
+
+// Check source credibility
 function checkSource() {
     console.log("📡 Debug: checkSource() function started!");
 
-    // Get user input for source URL
-    const url = document.getElementById("newsUrl").value.trim();
+    const url = document.getElementById("newsUrl")?.value.trim();
     if (!url) {
         alert("❌ Please enter a URL.");
         return;
     }
 
-    console.log("📡 Debug: Checking source credibility for URL:", url);
-
-    // API call to check the credibility of the URL source
     fetch("https://biasbackend.onrender.com/api/source-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url })  // Use "url" instead of "text"
+        body: JSON.stringify({ url })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.ok ? response.json() : Promise.reject(`Server error: ${response.status}`))
     .then(data => {
         console.log("✅ Debug: Source Check API Response:", data);
-
-        // Display the source credibility score
-        const credibilityText = data.credibility || "Unknown";
-        document.getElementById("sourceBiasScore").innerText = `Credibility: ${credibilityText}`;
-
-        // Show the source result section
-        document.getElementById("source-result").style.display = "block";
+        const sourceBiasElem = document.getElementById("sourceBiasScore");
+        const sourceResultElem = document.getElementById("source-result");
+        if (sourceBiasElem) {
+            sourceBiasElem.innerText = `Credibility: ${data.credibility || "Unknown"}`;
+            if (sourceResultElem) sourceResultElem.style.display = "block";
+        }
     })
     .catch(error => {
         console.error("❌ Error checking source:", error);
-        alert(`Failed to check source. Error: ${error.message}`);
+        alert(`Failed to check source. Error: ${error}`);
     });
 }
 
+// Toggle between original and rewritten text
 function toggleView() {
     const original = document.getElementById("originalText");
     const rewritten = document.getElementById("rewrittenText");
 
-    if (original.style.display === "none") {
-        original.style.display = "block";
-        rewritten.style.display = "none";
-    } else {
-        original.style.display = "none";
+    if (!original || !rewritten) {
+        console.error("❌ Error: Elements not found for toggle view.");
+        return;
+    }
+
+    if (rewritten.style.display === "none" || rewritten.style.display === "") {
         rewritten.style.display = "block";
+        original.style.display = "none";
+    } else {
+        rewritten.style.display = "none";
+        original.style.display = "block";
     }
 }
 
+// Flag article for review
 function flagArticle() {
     alert("🚩 Article flagged for review.");
 }
 
-// Helper function to update the bias score chart (placeholder)
+// Update the bias score chart (placeholder)
 function updateBiasChart(biasScore) {
     console.log(`📊 Updating chart with Bias Score: ${biasScore}`);
-    // Placeholder for chart integration logic
 }
-
 
 
 

@@ -5,71 +5,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bias-Free News Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
     <style>
         body {
+            background-color: #000;
             font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 700px;
-            margin: auto;
-        }
-
-        h2,
-        h3 {
+            color: white;
+            margin: 0;
+            padding: 40px;
             text-align: center;
         }
 
-        textarea,
-        input {
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #ccc;
+        }
+
+        textarea, input {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
         }
 
         button {
-            width: 100%;
-            padding: 10px;
-            background: blue;
-            color: white;
+            margin-top: 20px;
+            padding: 15px 30px;
             border: none;
+            border-radius: 8px;
+            background-color: white;
+            color: #000;
+            font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
-            border-radius: 4px;
-            margin-top: 10px;
+            transition: background-color 0.3s;
         }
 
         button:hover {
-            background: darkblue;
+            background-color: #ccc;
+        }
+
+        .red-btn {
+            background-color: #ff4d4d;
+            color: white;
+        }
+
+        #result, #source-result {
+            background-color: #1e1e1e;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        h3 {
+            color: #ccc;
         }
 
         .text-box {
+            background: #1e1e1e; /* Dark background for visibility */
+            color: white;
             padding: 10px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            white-space: pre-line;
+            border-radius: 8px;
+            border: 1px solid #444;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+            display: block;
         }
 
-        #result,
-        #source-result {
+        #rewrittenText {
             display: none;
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f4f4f4;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <h2>Bias-Free News Translator</h2>
-
-    <h3>Paste or type news text here...</h3>
+    <h2>Bias Free News</h2>
+    <p>An open-source news analysis system that detects and removes bias in articles, providing neutral content.</p>
+    
     <textarea id="newsText" rows="5" placeholder="Enter your article text here..."></textarea>
-    <button onclick="analyzeNews()">Analyze</button>
+    <button onclick="analyzeNews()" class="white-btn">Analyze</button>
 
     <div id="result">
         <h3>Bias Score: <span id="biasScore">Loading...</span></h3>
@@ -83,20 +107,23 @@
         <h3>Bias Redlining</h3>
         <div id="redlinedText" class="text-box"></div>
 
-        <button onclick="toggleView()">Toggle View</button>
-        <button onclick="flagArticle()" style="background: red;">Flag as Incorrect</button>
+        <button onclick="toggleView()" class="white-btn">Toggle View</button>
+        <button onclick="flagArticle()" class="red-btn">Flag as Incorrect</button>
     </div>
 
     <h3>Source Verification</h3>
     <input type="text" id="newsUrl" placeholder="Enter news website URL">
-    <button onclick="checkSource()">Check Source</button>
+    <button onclick="checkSource()" class="white-btn">Check Source</button>
     <div id="source-result">
         <h3>Bias Rating: <span id="sourceBiasScore">Loading...</span></h3>
     </div>
 
-    <!-- ✅ Ensure script.js is loaded correctly -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
 </body>
 
 </html>
+
+
+
+
+

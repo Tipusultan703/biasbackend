@@ -34,6 +34,7 @@ textarea, input {
     text-align: left;
     white-space: pre-wrap;
     margin-bottom: 10px;
+    display: block; /* Ensure text-box remains visible */
 }
 
 button {
@@ -52,4 +53,8 @@ button:hover { opacity: 0.8; }
 
 #result { margin-top: 20px; display: none; }
 #biasScore { font-size: 18px; font-weight: bold; margin-top: 10px; }
+
+#rewrittenText {
+    display: none; /* Hidden initially, toggled with JS */
+}
 
