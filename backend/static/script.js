@@ -1,47 +1,40 @@
-// Analyze news for bias
+// ✅ Analyze News for Bias
 function analyzeNews() {
     console.log("🔍 Debug: analyzeNews() function started!");
 
-    const text = document.getElementById("newsText")?.value.trim();
-    if (!text) {
-        console.warn("⚠️ Debug: No text input found.");
-        alert("❌ Please enter news text.");
+    const inputText = document.getElementById('newsText').value;
+
+    if (!inputText) {
+        alert("❌ Please enter some text to analyze.");
         return;
     }
 
-    fetch("https://biasbackend.onrender.com/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text })
+    fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: inputText }),
     })
-    .then(response => response.ok ? response.json() : Promise.reject(`Server error: ${response.status}`))
+    .then(response => {
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         console.log("✅ Debug: Data from Backend:", data);
 
-        const biasScore = parseFloat(data.bias_score);
-        const biasScoreElem = document.getElementById("biasScore");
-        if (biasScoreElem) {
-            biasScoreElem.innerText = isNaN(biasScore) 
-                ? "Bias Score: Not Available" 
-                : `Bias Score: ${biasScore.toFixed(2)}`;
-        }
+        document.getElementById('biasScore').textContent = data.bias_score ?? "Error";
+        document.getElementById('originalText').textContent = inputText;
+        document.getElementById('rewrittenText').textContent = data.rewritten ?? "No rewritten text available";
+        document.getElementById('redlinedText').innerHTML = formatRedlinedText(data.redlined_text);
 
-        document.getElementById("originalText").innerText = text;
-        document.getElementById("redlinedText").innerHTML = formatRedlinedText(data.redlined_text);
-        document.getElementById("rewrittenText").innerText = data.rewritten || "No rewritten text available.";
-
-        document.getElementById("rewrittenText").style.display = "none"; // Ensure hidden initially
-        document.getElementById("result").style.display = "block";
-
-        updateBiasChart(biasScore);
+        document.getElementById('result').style.display = 'block';
     })
     .catch(error => {
         console.error("❌ Error analyzing news:", error);
-        alert(`Failed to analyze text. Error: ${error}`);
+        alert(`Failed to analyze text. ${error.message}`);
     });
 }
 
-// Format redlined text for display
+// ✅ Format redlined text for display
 function formatRedlinedText(redlinedData) {
     if (!redlinedData?.biased_words?.length) {
         return "✅ No biased terms found.";
@@ -53,7 +46,7 @@ function formatRedlinedText(redlinedData) {
     return `<strong>Biased Words:</strong> ${biasedWords}<br><strong>Neutral Alternatives:</strong> ${neutralAlternatives}`;
 }
 
-// Check source credibility
+// ✅ Check Source Credibility
 function checkSource() {
     console.log("📡 Debug: checkSource() function started!");
 
@@ -63,19 +56,23 @@ function checkSource() {
         return;
     }
 
-    fetch("https://biasbackend.onrender.com/api/source-check", {
+    fetch("/api/source-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url })
     })
-    .then(response => response.ok ? response.json() : Promise.reject(`Server error: ${response.status}`))
+    .then(response => {
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
         console.log("✅ Debug: Source Check API Response:", data);
         const sourceBiasElem = document.getElementById("sourceBiasScore");
         const sourceResultElem = document.getElementById("source-result");
+
         if (sourceBiasElem) {
             sourceBiasElem.innerText = `Credibility: ${data.credibility || "Unknown"}`;
-            if (sourceResultElem) sourceResultElem.style.display = "block";
+            sourceResultElem.style.display = "block";
         }
     })
     .catch(error => {
@@ -84,7 +81,7 @@ function checkSource() {
     });
 }
 
-// Toggle between original and rewritten text
+// ✅ Toggle between Original and Rewritten Text
 function toggleView() {
     const original = document.getElementById("originalText");
     const rewritten = document.getElementById("rewrittenText");
@@ -103,15 +100,16 @@ function toggleView() {
     }
 }
 
-// Flag article for review
+// ✅ Flag Article for Review
 function flagArticle() {
     alert("🚩 Article flagged for review.");
 }
 
-// Update the bias score chart (placeholder)
+// ✅ Update Bias Score Chart (Placeholder for future implementation)
 function updateBiasChart(biasScore) {
     console.log(`📊 Updating chart with Bias Score: ${biasScore}`);
 }
+
 
 
 

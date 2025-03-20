@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bias-Free News Translator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
     <style>
         body {
             background-color: #000;
@@ -72,7 +71,7 @@
         }
 
         .text-box {
-            background: #1e1e1e; /* Dark background for visibility */
+            background: #1e1e1e;
             color: white;
             padding: 10px;
             border-radius: 8px;
@@ -91,9 +90,10 @@
 <body>
     <h2>Bias Free News</h2>
     <p>An open-source news analysis system that detects and removes bias in articles, providing neutral content.</p>
-    
+
+    <!-- Text Analysis Section -->
     <textarea id="newsText" rows="5" placeholder="Enter your article text here..."></textarea>
-    <button onclick="analyzeNews()" class="white-btn">Analyze</button>
+    <button onclick="analyzeNews()">Analyze</button>
 
     <div id="result">
         <h3>Bias Score: <span id="biasScore">Loading...</span></h3>
@@ -107,17 +107,19 @@
         <h3>Bias Redlining</h3>
         <div id="redlinedText" class="text-box"></div>
 
-        <button onclick="toggleView()" class="white-btn">Toggle View</button>
+        <button onclick="toggleView()">Toggle View</button>
         <button onclick="flagArticle()" class="red-btn">Flag as Incorrect</button>
     </div>
 
+    <!-- Source Verification Section -->
     <h3>Source Verification</h3>
     <input type="text" id="newsUrl" placeholder="Enter news website URL">
-    <button onclick="checkSource()" class="white-btn">Check Source</button>
+    <button onclick="checkSource()">Check Source</button>
     <div id="source-result">
         <h3>Bias Rating: <span id="sourceBiasScore">Loading...</span></h3>
     </div>
 
+    <!-- External JS -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 

@@ -1,5 +1,3 @@
-
-
 import os
 import re
 import logging
@@ -16,7 +14,7 @@ if not api_key:
     raise ValueError("❌ Missing API key. Set the OPENAI_API_KEY environment variable.")
 
 # ✅ OpenAI API Client
-openai_client = openai.OpenAI()
+openai_client = openai.OpenAI(api_key=api_key)
 
 # ✅ Configure Flask App
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -153,6 +151,33 @@ def analyze_news():
 @app.route('/')
 def home():
     return render_template('index.html')
+
+     
+@app.route('/api/source-check', methods=['POST'])
+def check_source():
+    """Check the credibility of a news source."""
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Invalid request format. Expected JSON"}), 400
+
+        data = request.get_json()
+        url = data.get("url", "").strip()
+
+        if not url:
+            return jsonify({"error": "No URL provided"}), 400
+
+        # Extract domain and check credibility
+        domain = extract_domain(url)
+        credibility = TRUSTED_SOURCES.get(domain, "Unknown")
+
+        logging.info(f"✅ Source Checked: {domain}, Credibility: {credibility}")
+
+        return jsonify({"source": domain, "credibility": credibility})
+
+    except Exception as e:
+        logging.error(f"❌ Error in /api/source-check: {str(e)}")
+        return jsonify({"error": "Internal Server Error"}), 500
+
 
 # ✅ Run Flask App
 if __name__ == '__main__':
