@@ -24,6 +24,7 @@ CORS(app)
 logging.basicConfig(level=logging.DEBUG)
 
 # ✅ Trusted News Sources Database
+# ✅ Trusted News Sources Database
 TRUSTED_SOURCES = {
     "bbc.com": "High",
     "nytimes.com": "High",
@@ -32,8 +33,13 @@ TRUSTED_SOURCES = {
     "reuters.com": "High",
     "theguardian.com": "High",
     "breitbart.com": "Low",
-    "oann.com": "Low"
+    "oann.com": "Low",
+    "wsj.com": "High",                  
+    "washingtonpost.com": "High",       
+    "latimes.com": "High",              
+    "bostonglobe.com": "High"   
 }
+
 
 # ✅ Utility Functions
 def extract_domain(url):

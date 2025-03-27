@@ -1,0 +1,57 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #000; /* Black Background */
+  color: white; /* White Text */
+  padding: 20px;
+  width: 350px;
+}
+
+h1 {
+  color: white; /* White Heading */
+  font-size: 18px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #444; /* Darker Border */
+  border-radius: 5px;
+  background-color: #1e1e1e; /* Dark Grey Background */
+  color: white; /* White Text */
+  resize: none;
+}
+
+button {
+  padding: 10px;
+  width: 100%;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: white; /* White Buttons */
+  color: #000; /* Black Text */
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #ccc; /* Light Grey on Hover */
+}
+
+#result {
+  display: none;
+  margin-top: 20px;
+  padding: 10px;
+  background: #1e1e1e; /* Dark Grey Result Background */
+  border-radius: 5px;
+}
+
+p {
+  text-align: left;
+  font-size: 14px;
+  color: white; /* White Text for Results */
+}
+
+
+
