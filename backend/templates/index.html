@@ -81,8 +81,24 @@
             display: block;
         }
 
-        #rewrittenText {
+        /* Added loading indicator (hidden by default) */
+        .loader {
             display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -92,11 +108,21 @@
     <p>An open-source news analysis system that detects and removes bias in articles, providing neutral content.</p>
 
     <!-- Text Analysis Section -->
+    <input type="text" id="newsUrlInput" placeholder="Enter news article URL here...">
     <textarea id="newsText" rows="5" placeholder="Enter your article text here..."></textarea>
     <button onclick="analyzeNews()">Analyze</button>
 
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loader">
+        <div class="spinner"></div>
+        <p>Analyzing article...</p>
+    </div>
+
     <div id="result">
+        <p id="publishedDate" style="display: none; font-weight: bold;"></p>
+
         <h3>Bias Score: <span id="biasScore">Loading...</span></h3>
+        <h3>Analysis Timestamp: <span id="timestamp">Loading...</span></h3>
 
         <h3>Original Article</h3>
         <div id="originalText" class="text-box"></div>
@@ -119,12 +145,151 @@
         <h3>Bias Rating: <span id="sourceBiasScore">Loading...</span></h3>
     </div>
 
-    <!-- External JS -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // News Analysis Application - Complete Frontend Code
+        async function analyzeNews() {
+            const textInput = document.getElementById("newsText").value.trim();
+            const urlInput = document.getElementById("newsUrlInput").value.trim();
+
+            if (!textInput && !urlInput) {
+                alert("❌ Please enter either a news article URL or text.");
+                return;
+            }
+
+            let requestData = {};
+            let publishedDate = "Unknown";
+
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            try {
+                if (urlInput) {
+                    requestData = { url: urlInput };
+                    
+                    // Fetch published date first
+                    try {
+                        const dateResponse = await fetch('/api/analyze', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: urlInput, action: 'get_date' })
+                        });
+                        
+                        if (dateResponse.ok) {
+                            const dateData = await dateResponse.json();
+                            if (dateData.published_date && dateData.published_date !== "Unknown") {
+                                const dateObj = new Date(dateData.published_date);
+                                publishedDate = dateObj.toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Date fetch error:", e);
+                    }
+                } else {
+                    requestData = { text: textInput };
+                }
+
+                // Perform main analysis
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Display results
+                document.getElementById('biasScore').textContent = data.bias_score?.toFixed(1) ?? "N/A";
+                document.getElementById('timestamp').textContent = publishedDate;
+                document.getElementById('originalText').innerHTML = 
+                    data.original_article ? 
+                    data.original_article.replace(/\n/g, "<br>") : 
+                    "No original article available.";
+                document.getElementById('rewrittenText').innerHTML = 
+                    data.rewritten ? 
+                    data.rewritten.replace(/\n/g, "<br>") : 
+                    "No rewritten text available.";
+                document.getElementById('redlinedText').innerHTML = 
+                    formatRedlinedText(data.redlined_text);
+
+                document.getElementById('result').style.display = 'block';
+
+            } catch (error) {
+                console.error("❌ Error analyzing news:", error);
+                alert(`Failed to analyze text. ${error.message}`);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        function formatRedlinedText(redlinedData) {
+            if (!redlinedData || !redlinedData.biased_words?.length) {
+                return "✅ No biased terms found.";
+            }
+
+            const biasedWords = redlinedData.biased_words.map(word => `<span style="color: red;">❌ ${word}</span>`).join(", ");
+            const neutralAlternatives = redlinedData.neutral_alternatives?.map(word => `<span style="color: green;">✅ ${word}</span>`).join(", ") || "No neutral alternatives available.";
+
+            return `<strong>Biased Words:</strong> ${biasedWords}<br><strong>Neutral Alternatives:</strong> ${neutralAlternatives}`;
+        }
+
+        function checkSource() {
+            const url = document.getElementById("newsUrl").value.trim();
+            if (!url) {
+                alert("❌ Please enter a URL.");
+                return;
+            }
+
+            fetch("/api/source-check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("sourceBiasScore").textContent = data.credibility || "Unknown";
+                document.getElementById("source-result").style.display = "block";
+            })
+            .catch(error => {
+                console.error("❌ Error checking source:", error);
+                alert(`Failed to check source. Error: ${error}`);
+            });
+        }
+
+        function toggleView() {
+            const originalText = document.getElementById("originalText");
+            const rewrittenText = document.getElementById("rewrittenText");
+            const isOriginalVisible = originalText.style.display !== "none";
+            
+            originalText.style.display = isOriginalVisible ? "none" : "block";
+            rewrittenText.style.display = isOriginalVisible ? "block" : "none";
+        }
+
+        function flagArticle() {
+            const reason = prompt("Why are you flagging this article?");
+            if (reason) {
+                alert("Thank you for your feedback! This article has been flagged for review.");
+                console.log("Flagged article with reason:", reason);
+                // In a real app, you would send this to your backend
+            }
+        }
+    </script>
 </body>
-
 </html>
-
 
 
 
