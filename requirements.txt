@@ -16,6 +16,7 @@ Flask==3.1.0
 flask-cors==5.0.1
 fsspec==2025.3.0
 greenlet==3.1.1
+gunicorn==23.0.0
 h11==0.14.0
 httpcore==1.0.7
 httpx==0.28.1
@@ -65,4 +66,5 @@ tqdm==4.67.1
 transformers==4.49.0
 typing_extensions==4.12.2
 urllib3==2.3.0
+waitress==3.0.2
 Werkzeug==3.1.3
